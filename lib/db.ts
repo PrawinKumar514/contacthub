@@ -6,10 +6,20 @@ if (!MONGODB_URI) {
   throw new Error("Please define MONGODB_URI in .env.local");
 }
 
+declare global {
+  var mongoose: {
+    conn: any;
+    promise: Promise<any> | null;
+  };
+}
+
 let cached = global.mongoose;
 
 if (!cached) {
-  cached = global.mongoose = { conn: null, promise: null };
+  cached = global.mongoose = {
+    conn: null,
+    promise: null,
+  };
 }
 
 async function connectDB() {
@@ -18,14 +28,9 @@ async function connectDB() {
   }
 
   if (!cached.promise) {
-    const opts = {
-      bufferCommands: false,
-    };
-
-    cached.promise = mongoose.connect(MONGODB_URI, opts).then((mongoose) => {
-      return mongoose;
-    });
+    cached.promise = mongoose.connect(MONGODB_URI);
   }
+
   cached.conn = await cached.promise;
   return cached.conn;
 }
